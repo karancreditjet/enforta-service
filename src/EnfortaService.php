@@ -1,6 +1,6 @@
 <?php namespace Wemagine\Enforta;
 
-use App\Services\EnfortaXMLService\EnfortaXMLService;
+use Wemagine\Enforta\EnfortaXMLService\EnfortaXMLService;
 use Illuminate\Support\Facades\Http;
 use ABGEO\XmlToJson\StringConverter;
 use Illuminate\Support\Facades\Log;
