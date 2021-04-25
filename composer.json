@@ -1,0 +1,20 @@
+{
+    "name": "wemagine/enforta",
+    "description": "This SDK is for enforta interaction",
+    "type": "library",
+    "require": {
+        "guzzlehttp/guzzle": "^7.0.1",
+        "abgeo/xml-to-json": "^1.0"
+    },
+    "authors": [
+        {
+            "name": "Karan Talwar",
+            "email": "iamkarantalwar@gmail.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Wemagine\\Enforta\\": "src/"
+        }
+    }
+}
