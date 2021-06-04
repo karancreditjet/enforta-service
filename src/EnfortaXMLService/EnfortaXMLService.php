@@ -296,4 +296,22 @@ class EnfortaXMLService {
         ]);
     }
 
+    public function cancelEnrollmentOfLoggedInUser() {
+        return $this->genrateEnfortaXML("CancelEnrollment", [
+            "APILoginName" => env('ENFORTRA_API_USERNAME'),
+            "APILoginPassword" => env('ENFORTRA_API_PASSWORD'),
+            "UserEmailAddress" => request()->user()->email,
+            "OutputType" => "JSON",
+        ]);
+    }
+
+    public function lockUnlockCreditReport() {
+        return $this->genrateEnfortaXML("LockUnLockTuFile", [
+            "APILoginName" => env('ENFORTRA_API_USERNAME'),
+            "APILoginPassword" => env('ENFORTRA_API_PASSWORD'),
+            "UserEmailAddress" => request()->user()->email,
+            "OutputType" => "JSON",
+        ]);
+    }
+
 }

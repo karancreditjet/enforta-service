@@ -8,19 +8,19 @@ use Illuminate\Support\Facades\Log;
 class EnfortaService implements EnfortaServiceInterface {
 
     /**
-     * @var App\Services\EnfortaXMLService\EnfortaXMLService;
+     * @var Wemagine\Enforta\EnfortaXMLService\EnfortaXMLService;
      */
     private $enfortaXMLService;
 
     /**
-     * @var App\Services\EnfortaXMLService\EnfortaXMLService;
+     * @var Wemagine\Enforta\EnfortaXMLService\EnfortaXMLService;
      */
     private $enfortaHttpClient;
 
     public function __construct(EnfortaXMLService $enfortaXMLService) {
         $this->enfortaXMLService = $enfortaXMLService;
         $this->enfortaHttpClient = new \GuzzleHttp\Client([
-            'base_uri' => 'https://www.enfortra.net/Enfortrav1.06.asmx'
+            'base_uri' => 'https://api.identityprotection-services.com/Enfortrav1.06.asmx'
         ]);
     }
 
@@ -31,7 +31,7 @@ class EnfortaService implements EnfortaServiceInterface {
     public function createNewUserEnrollment($data) {
         try{
             $newUserEnrollmentXML = $this->enfortaXMLService->getCreateNewUserEnrollmentXML($data);
-            $client = $this->enfortaHttpClient->post("https://www.enfortra.net/Enfortrav1.06.asmx", [
+            $client = $this->enfortaHttpClient->post("https://api.identityprotection-services.com/Enfortrav1.06.asmx", [
                 'body' => $newUserEnrollmentXML,
                 'headers' => [
                     'Content-Type' => 'text/xml',
@@ -53,7 +53,7 @@ class EnfortaService implements EnfortaServiceInterface {
      */
     public function getEnfortaVersion() {
         $versionXML = $this->enfortaXMLService->getEnfortaData();
-        $client = $this->enfortaHttpClient->post("https://www.enfortra.net/Enfortrav1.06.asmx", [
+        $client = $this->enfortaHttpClient->post("https://api.identityprotection-services.com/Enfortrav1.06.asmx", [
             'body' => $versionXML,
             'headers' => [
                 'Content-Type' => 'text/xml',
@@ -82,7 +82,7 @@ class EnfortaService implements EnfortaServiceInterface {
      */
     public function getReportDetailsXML() {
         $requestXML = $this->enfortaXMLService->getReportDetails();
-        $client = $this->enfortaHttpClient->post("https://www.enfortra.net/Enfortrav1.06.asmx", [
+        $client = $this->enfortaHttpClient->post("https://api.identityprotection-services.com/Enfortrav1.06.asmx", [
             'body' => $requestXML,
             'headers' => [
                 'Content-Type' => 'text/xml',
@@ -100,7 +100,7 @@ class EnfortaService implements EnfortaServiceInterface {
      * **/
     public function getEnrollmentDetails($email) {
         $getUserEnrollmentDetailsXML = $this->enfortaXMLService->getEnrollmentDetails($email);
-        $client = $this->enfortaHttpClient->post("https://www.enfortra.net/Enfortrav1.06.asmx", [
+        $client = $this->enfortaHttpClient->post("https://api.identityprotection-services.com/Enfortrav1.06.asmx", [
             'body' => $getUserEnrollmentDetailsXML,
             'headers' => [
                 'Content-Type' => 'text/xml',
@@ -120,7 +120,7 @@ class EnfortaService implements EnfortaServiceInterface {
     public function changeLoggedInUserPassword($password, $isSystemGenrated) {
         $user = auth()->user();
         $getUserEnrollmentDetailsXML = $this->enfortaXMLService->changeUserPassword($user->email, $password, $isSystemGenrated, 6);
-        $client = $this->enfortaHttpClient->post("https://www.enfortra.net/Enfortrav1.06.asmx", [
+        $client = $this->enfortaHttpClient->post("https://api.identityprotection-services.com/Enfortrav1.06.asmx", [
             'body' => $getUserEnrollmentDetailsXML,
             'headers' => [
                 'Content-Type' => 'text/xml',
@@ -176,7 +176,9 @@ class EnfortaService implements EnfortaServiceInterface {
         $getAllAlertsXML = $this->enfortaXMLService->getAllAlerts($user->email);
         $alertsData = $this->enfortaAPICall( "GetAllAlerts", $getAllAlertsXML );
         if( isset($alertsData["GetAllAlertsResponse"]) && isset($alertsData["GetAllAlertsResponse"]["GetAllAlertsResult"]) ){
-            $data = $alertsData["GetAllAlertsResponse"]["GetAllAlertsResult"];
+            $data = ($alertsData["GetAllAlertsResponse"]["GetAllAlertsResult"]) != null ? $alertsData["GetAllAlertsResponse"]["GetAllAlertsResult"] : "[]";
+        } else {
+            $data = [];
         }
         return json_decode($data,true);
     }
@@ -208,9 +210,10 @@ class EnfortaService implements EnfortaServiceInterface {
         $dataInXML = $this->enfortaXMLService->getCreditScoreDetails();
         $data = $this->enfortaAPICall("GetCreditScores", $dataInXML);
         try {
-            return json_decode($data["GetCreditScoresResponse"]["GetCreditScoresResult"], true);
+            $output = $data["GetCreditScoresResponse"]["GetCreditScoresResult"] != null ? $data["GetCreditScoresResponse"]["GetCreditScoresResult"] : "[]";
+            return json_decode($output, true);
         } catch ( \Exception $e ) {
-            return false;
+            return [];
         }
     }
 
@@ -236,7 +239,11 @@ class EnfortaService implements EnfortaServiceInterface {
                 ];
             }
         } catch(\Exception $e) {
-
+            return [
+                'score' => [],
+                'status' => false,
+                'message' => 'Something went wrong. Try again later.s',
+            ];
         }
     }
 
@@ -309,7 +316,7 @@ class EnfortaService implements EnfortaServiceInterface {
      */
     private function enfortaAPICall( $function ,$body ){
         try{
-            $client = $this->enfortaHttpClient->post("https://www.enfortra.net/Enfortrav1.06.asmx", [
+            $client = $this->enfortaHttpClient->post("https://api.identityprotection-services.com/Enfortrav1.06.asmx", [
                 'body' => $body,
                 'headers' => [
                     'Content-Type' => 'text/xml',
@@ -340,18 +347,60 @@ class EnfortaService implements EnfortaServiceInterface {
     public function getSSNs() {
         $dataInXML = $this->enfortaXMLService->getSSNs();
         $result = $this->enfortaAPICall("GetSSNs", $dataInXML);
-        // dd($result);
-        return [];
+        try {
+            $response = json_decode($result["GetSSNsResponse"]["GetSSNsResult"], true)["Response"]["SSN"];
+            // Checking if they are returning single array
+            if(isset($response["MonitorID"])) {
+                return [
+                    $response
+                ];
+            }
+            return is_array($response) ? $response : [];
+        } catch(\Exception $e) {
+            return [];
+        }
+
     }
 
     public function getRedAlerts() {
         $dataInXml = $this->enfortaXMLService->getRedAlerts();
         $result = $this->enfortaAPICall("GetRedAlerts", $dataInXml);
         try {
-            return json_decode($result["GetRedAlertsResponse"]["GetRedAlertsResult"], true);
+            $data = json_decode($result["GetRedAlertsResponse"]["GetRedAlertsResult"], true);
+            return is_array($data)  ? $data : [];
         } catch(\Exception $e) {
             return false;
         }
 
+    }
+
+    public function cancelEnrollmentOfLoggedInUser() {
+        $dataInXml = $this->enfortaXMLService->cancelEnrollmentOfLoggedInUser();
+        $result = $this->enfortaAPICall("CancelEnrollment", $dataInXml);
+        try {
+            return ($result["CancelEnrollmentResponse"]["CancelEnrollmentResult"]);
+        } catch(\Exception $e) {
+            return false;
+        }
+    }
+
+    public function lockUnlockCreditReport() {
+        $dataInXml = $this->enfortaXMLService->lockUnlockCreditReport();
+        $client = $this->enfortaHttpClient->post("https://api.identityprotection-services.com/Enfortrav1.06.asmx?LockUnLockTUFile", [
+            'body' => $dataInXml,
+            'headers' => [
+                'Content-Type' => 'text/xml',
+                'SOAPAction' => "https://api.identityprotection-services.com/LockUnLockTUFile",
+            ],
+            'verify' => false,
+        ]);
+        $dataInJSON = $this->XMLtoJSON($client->getBody()->getContents());
+        $result = $dataInJSON["Envelope"]["soap:Body"];
+        try {
+            dd($result);
+            return ($result["CancelEnrollmentResponse"]["CancelEnrollmentResult"]);
+        } catch(\Exception $e) {
+            return false;
+        }
     }
 }
