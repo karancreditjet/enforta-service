@@ -403,4 +403,14 @@ class EnfortaService implements EnfortaServiceInterface {
             return false;
         }
     }
+
+    public function getAccountTradeLines() {
+        $dataInXML = $this->enfortaXMLService->getAccountTradeLines();
+        $result = $this->enfortaAPICall("GetAccountTradeLines", $dataInXML);
+        try {
+            return $result['GetAccountTradeLinesResponse']['GetAccountTradeLinesResult'];
+        } catch(\Exception $e) {
+            return false;
+        }
+    }
 }

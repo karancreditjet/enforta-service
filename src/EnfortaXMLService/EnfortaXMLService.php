@@ -314,4 +314,13 @@ class EnfortaXMLService {
         ]);
     }
 
+    public function getAccountTradeLines() {
+      return $this->genrateEnfortaXML("GetAccountTradeLines", [
+        "APILoginName" => env('ENFORTRA_API_USERNAME'),
+        "APILoginPassword" => env('ENFORTRA_API_PASSWORD'),
+        "UserEmailAddress" => request()->user()->email,
+        "OutputType" => "JSON",
+      ]);
+    }
+
 }
